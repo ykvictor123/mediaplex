@@ -69,8 +69,8 @@
     </div>
 
     <script>
-        // API URL
-        const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
+        // API URL con proxy para evitar problemas de CORS
+        const API_URL = 'https://cors-anywhere.herokuapp.com/https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
 
         // Fetch movies from API
         async function fetchMoviesFromHydrax() {
@@ -98,7 +98,7 @@
                 const movies = data.items.filter(item => item.status === "Ready").map(movie => ({
                     title: movie.name,
                     slug: movie.slug,
-                    thumbnail: "https://via.placeholder.com/300x450", // Puedes cambiar esta URL si hay miniaturas disponibles
+                    thumbnail: "https://via.placeholder.com/300x450", // Cambia esta URL si tienes miniaturas disponibles
                     embedUrl: `https://short.ink/${movie.slug}`
                 }));
 
@@ -106,7 +106,7 @@
             } catch (error) {
                 console.error('Error al cargar las películas:', error);
                 showErrorMessage(`Error al cargar las películas: ${error.message}`);
-                // Simular datos en caso de error
+                // Datos de prueba en caso de error
                 const fallbackMovies = [
                     {
                         title: "Película de Prueba 1",
