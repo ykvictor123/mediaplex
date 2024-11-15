@@ -90,16 +90,15 @@
                 const data = await response.json();
                 console.log("API response data:", data);
 
-                // Validar estructura de la respuesta
-                if (!data || !Array.isArray(data.movies)) {
+                // Procesar las películas desde la propiedad 'items'
+                if (!data || !Array.isArray(data.items)) {
                     throw new Error("Estructura inesperada en la respuesta de la API.");
                 }
 
-                // Procesar las películas
-                const movies = data.movies.map(movie => ({
-                    title: movie.title || "Título no disponible",
+                const movies = data.items.filter(item => item.status === "Ready").map(movie => ({
+                    title: movie.name,
                     slug: movie.slug,
-                    thumbnail: movie.thumbnail || "https://via.placeholder.com/300x450",
+                    thumbnail: "https://via.placeholder.com/300x450", // Puedes cambiar esta URL si hay miniaturas disponibles
                     embedUrl: `https://short.ink/${movie.slug}`
                 }));
 
@@ -117,9 +116,9 @@
                     },
                     {
                         title: "Película de Prueba 2",
-                        slug: "ABc_d3fGHI",
+                        slug: "zzX6t9ltH",
                         thumbnail: "https://via.placeholder.com/300x450",
-                        embedUrl: "https://short.ink/ABc_d3fGHI"
+                        embedUrl: "https://short.ink/zzX6t9ltH"
                     }
                 ];
                 renderMovies(fallbackMovies);
@@ -161,24 +160,5 @@
         // Cargar las películas al iniciar la página
         document.addEventListener('DOMContentLoaded', fetchMoviesFromHydrax);
     </script>
-    try {
-    console.log("Fetching movies from API:", API_URL);
-    const response = await fetch(API_URL, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(`Error de la API: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log("API response data:", data);
-} catch (error) {
-    console.error('Detalles del error:', error);
-    showErrorMessage(`Error al cargar las películas: ${error.message}`);
-}
 </body>
 </html>
