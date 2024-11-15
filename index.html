@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -38,6 +38,11 @@
             height: 500px;
             border: none;
         }
+        #error-message {
+            color: #ff0000;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -56,6 +61,9 @@
             <iframe id="video-player" src="" allowfullscreen></iframe>
         </div>
 
+        <!-- Error Message -->
+        <div id="error-message" style="display: none;"></div>
+
         <!-- Movie List -->
         <div id="movies-list" class="row g-3"></div>
     </div>
@@ -67,21 +75,54 @@
         // Fetch movies from API
         async function fetchMoviesFromHydrax() {
             try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Error al obtener los datos de la API');
+                console.log("Fetching movies from API:", API_URL);
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error de la API: ${response.status} ${response.statusText}`);
+                }
+
                 const data = await response.json();
+                console.log("API response data:", data);
+
+                // Validar estructura de la respuesta
+                if (!data || !Array.isArray(data.movies)) {
+                    throw new Error("Estructura inesperada en la respuesta de la API.");
+                }
 
                 // Procesar las películas
                 const movies = data.movies.map(movie => ({
-                    title: movie.title,
+                    title: movie.title || "Título no disponible",
                     slug: movie.slug,
-                    thumbnail: movie.thumbnail,
+                    thumbnail: movie.thumbnail || "https://via.placeholder.com/300x450",
                     embedUrl: `https://short.ink/${movie.slug}`
                 }));
 
                 renderMovies(movies);
             } catch (error) {
                 console.error('Error al cargar las películas:', error);
+                showErrorMessage(`Error al cargar las películas: ${error.message}`);
+                // Simular datos en caso de error
+                const fallbackMovies = [
+                    {
+                        title: "Película de Prueba 1",
+                        slug: "XVy_v5uPEM",
+                        thumbnail: "https://via.placeholder.com/300x450",
+                        embedUrl: "https://short.ink/XVy_v5uPEM"
+                    },
+                    {
+                        title: "Película de Prueba 2",
+                        slug: "ABc_d3fGHI",
+                        thumbnail: "https://via.placeholder.com/300x450",
+                        embedUrl: "https://short.ink/ABc_d3fGHI"
+                    }
+                ];
+                renderMovies(fallbackMovies);
             }
         }
 
@@ -110,27 +151,15 @@
             player.src = embedUrl;
         }
 
+        // Show error message
+        function showErrorMessage(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = message;
+        }
+
         // Cargar las películas al iniciar la página
         document.addEventListener('DOMContentLoaded', fetchMoviesFromHydrax);
     </script>
-// Ejemplo de agregar películas manualmente
-async function fetchMoviesFromHydrax() {
-    const movies = [
-        {
-            title: "Película 1",
-            slug: "XVy_v5uPEM",
-            thumbnail: "https://via.placeholder.com/300x450",
-            embedUrl: "https://short.ink/XVy_v5uPEM"
-        },
-        {
-            title: "Película 2",
-            slug: "ABc_d3fGHI",
-            thumbnail: "https://via.placeholder.com/300x450",
-            embedUrl: "https://short.ink/ABc_d3fGHI"
-        }
-    ];
-
-    renderMovies(movies);
-}
 </body>
 </html>
