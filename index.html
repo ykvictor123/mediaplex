@@ -161,5 +161,24 @@
         // Cargar las películas al iniciar la página
         document.addEventListener('DOMContentLoaded', fetchMoviesFromHydrax);
     </script>
+    try {
+    console.log("Fetching movies from API:", API_URL);
+    const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error de la API: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("API response data:", data);
+} catch (error) {
+    console.error('Detalles del error:', error);
+    showErrorMessage(`Error al cargar las películas: ${error.message}`);
+}
 </body>
 </html>
