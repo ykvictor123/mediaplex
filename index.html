@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPlex - Movies</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .navbar {
+            background-color: #1f1f1f;
+        }
+        .movie-card {
+            background-color: #1f1f1f;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        .movie-card img {
+            height: 300px;
+            object-fit: cover;
+        }
+        .movie-card .card-body {
+            text-align: center;
+        }
+        #video-container {
+            margin-bottom: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">MediaPlex</a>
+            <form class="d-flex ms-auto">
+                <input id="search-bar" class="form-control me-2" type="search" placeholder="Buscar películas..." aria-label="Search">
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Video Player -->
+        <div id="video-container" class="my-4">
+            <iframe id="video-player" src="" allowfullscreen></iframe>
+        </div>
+
+        <!-- Movie List -->
+        <div id="movies-list" class="row g-3"></div>
+    </div>
+
+    <script>
+        // API URL
+        const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
+
+        // Fetch movies from API
+        async function fetchMoviesFromHydrax() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Error al obtener los datos de la API');
+                const data = await response.json();
+
+                // Procesar las películas
+                const movies = data.movies.map(movie => ({
+                    title: movie.title,
+                    slug: movie.slug,
+                    thumbnail: movie.thumbnail,
+                    embedUrl: `https://short.ink/${movie.slug}`
+                }));
+
+                renderMovies(movies);
+            } catch (error) {
+                console.error('Error al cargar las películas:', error);
+            }
+        }
+
+        // Render movies in the grid
+        function renderMovies(movies) {
+            const moviesContainer = document.getElementById('movies-list');
+            moviesContainer.innerHTML = ''; // Clear existing movies
+            movies.forEach(movie => {
+                const movieCard = `
+                    <div class="col-md-3">
+                        <div class="card movie-card" onclick="playMovie('${movie.embedUrl}')">
+                            <img src="${movie.thumbnail}" class="card-img-top" alt="${movie.title}">
+                            <div class="card-body">
+                                <h5 class="card-title">${movie.title}</h5>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                moviesContainer.innerHTML += movieCard;
+            });
+        }
+
+        // Play movie in the player
+        function playMovie(embedUrl) {
+            const player = document.getElementById('video-player');
+            player.src = embedUrl;
+        }
+
+        // Cargar las películas al iniciar la página
+        document.addEventListener('DOMContentLoaded', fetchMoviesFromHydrax);
+    </script>
+// Ejemplo de agregar películas manualmente
+async function fetchMoviesFromHydrax() {
+    const movies = [
+        {
+            title: "Película 1",
+            slug: "XVy_v5uPEM",
+            thumbnail: "https://via.placeholder.com/300x450",
+            embedUrl: "https://short.ink/XVy_v5uPEM"
+        },
+        {
+            title: "Película 2",
+            slug: "ABc_d3fGHI",
+            thumbnail: "https://via.placeholder.com/300x450",
+            embedUrl: "https://short.ink/ABc_d3fGHI"
+        }
+    ];
+
+    renderMovies(movies);
+}
+</body>
+</html>
