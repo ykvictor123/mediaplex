@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediaPlex - Películas</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     <style>
         body {
             background-color: #121212;
@@ -18,28 +17,13 @@
             background-color: #1f1f1f;
             border-radius: 10px;
             overflow: hidden;
-            transition: transform 0.3s;
             margin-bottom: 20px;
-        }
-        .movie-card:hover {
-            transform: scale(1.05);
-        }
-        .movie-card img {
-            height: 300px;
-            object-fit: cover;
         }
         .movie-card .card-body {
             text-align: center;
         }
-        iframe {
-            width: 100%;
-            height: 500px;
-            border: none;
-        }
-        #error-message {
-            color: #ff0000;
-            text-align: center;
-            margin-top: 20px;
+        a {
+            color: #00bfff;
         }
     </style>
 </head>
@@ -51,101 +35,34 @@
     </nav>
 
     <div class="container">
-        <div id="error-message" style="display: none;"></div>
-        <div id="movies-list" class="row g-3"></div>
-    </div>
-
-    <script>
-        const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
-
-        // Función para obtener los videos desde la API
-        async function fetchMovies() {
-            try {
-                console.log("Fetching movies from API:", API_URL);
-                const response = await fetch(API_URL, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error de la API: ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log("API response data:", data);
-
-                // Verificar si la respuesta es exitosa
-                if (!data.status) {
-                    throw new Error(data.msg || "Error desconocido al obtener los datos.");
-                }
-
-                // Procesar los videos disponibles
-                const movies = data.items.filter(item => item.status === "Ready").map(video => ({
-                    title: video.name,
-                    slug: video.slug,
-                    resolution: video.resolution,
-                    embedUrl: `https://short.ink/${video.slug}`
-                }));
-
-                if (movies.length === 0) {
-                    throw new Error("No hay películas disponibles.");
-                }
-
-                renderMovies(movies);
-            } catch (error) {
-                console.error('Error al cargar las películas:', error);
-                showErrorMessage(`Error al cargar las películas: ${error.message}`);
-                renderFallbackMovies();
-            }
-        }
-
-        // Función para mostrar los videos en la página
-        function renderMovies(movies) {
-            const moviesContainer = document.getElementById('movies-list');
-            moviesContainer.innerHTML = ''; // Limpiar la lista existente
-            movies.forEach(movie => {
-                const movieCard = `
-                    <div class="col-md-4">
-                        <div class="card movie-card">
-                            <iframe src="${movie.embedUrl}" frameborder="0" scrolling="0" allowfullscreen></iframe>
-                            <div class="card-body">
-                                <h5 class="card-title">${movie.title} (${movie.resolution}p)</h5>
-                            </div>
-                        </div>
+        <div id="movies-list" class="row g-3">
+            <div class="col-md-4">
+                <div class="card movie-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Código - Traje rojo (2024)</h5>
+                        <p>Enlace: <code>https://short.ink/XVy_v5uPEM</code></p>
                     </div>
-                `;
-                moviesContainer.innerHTML += movieCard;
-            });
-        }
+                </div>
+            </div>
 
-        // Función para mostrar un mensaje de error
-        function showErrorMessage(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.style.display = 'block';
-            errorMessage.textContent = message;
-        }
+            <div class="col-md-4">
+                <div class="card movie-card">
+                    <div class="card-body">
+                        <h5 class="card-title">SMILE 2 (2024)</h5>
+                        <p>Enlace: <code>https://short.ink/zzX6t9ltH</code></p>
+                    </div>
+                </div>
+            </div>
 
-        // Datos de prueba si la solicitud falla
-        function renderFallbackMovies() {
-            const fallbackMovies = [
-                {
-                    title: "Película de Prueba 1",
-                    slug: "XVy_v5uPEM",
-                    embedUrl: "https://short.ink/XVy_v5uPEM"
-                },
-                {
-                    title: "Película de Prueba 2",
-                    slug: "zzX6t9ltH",
-                    embedUrl: "https://short.ink/zzX6t9ltH"
-                }
-            ];
-            renderMovies(fallbackMovies);
-        }
-
-        // Iniciar la carga de películas al cargar la página
-        document.addEventListener('DOMContentLoaded', fetchMovies);
-    </script>
+            <div class="col-md-4">
+                <div class="card movie-card">
+                    <div class="card-body">
+                        <h5 class="card-title">La cueva azul (2024)</h5>
+                        <p>Enlace: <code>https://short.ink/o2BKDCixU</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
