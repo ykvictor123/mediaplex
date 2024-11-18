@@ -65,8 +65,11 @@
                 }
 
                 const data = await response.json();
-                if (!data.status || !Array.isArray(data.items)) {
-                    throw new Error("Estructura inesperada en la respuesta de la API.");
+                console.log("Datos de la API:", data);
+
+                // Validar si la respuesta contiene "items"
+                if (!data.items || !Array.isArray(data.items)) {
+                    throw new Error("Estructura inesperada: No se encontró la lista de 'items'.");
                 }
 
                 // Filtrar solo las películas con "status: Ready"
