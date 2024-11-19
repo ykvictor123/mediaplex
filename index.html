@@ -17,8 +17,18 @@
     </select>
     <button id="filter-btn">Filtrar</button>
   </header>
-  <main id="movie-grid">
-    <div id="loading-spinner">Cargando...</div>
+  <main>
+    <!-- Reproductor de la película -->
+    <div id="player-container" class="hidden">
+      <h2 id="player-title">Reproduciendo:</h2>
+      <iframe id="movie-player" width="640" height="360" frameborder="0" scrolling="0" allowfullscreen></iframe>
+      <button id="close-player-btn">Cerrar</button>
+    </div>
+
+    <!-- Listado de películas -->
+    <div id="movie-grid">
+      <div id="loading-spinner">Cargando...</div>
+    </div>
   </main>
   <footer>
     <p>Mediaplex &copy; 2024</p>
