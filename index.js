@@ -4,15 +4,21 @@ const cors = require('cors');
 const app = express();
 
 // Configurar CORS
-app.use(cors());
+app.use(cors({
+  origin: 'https://ykvictor123.github.io', // Dominio de tu frontend en GitHub Pages
+  methods: ['GET']
+}));
 
 // URL de la API de Hydrax
-const API_URL = 'https://mediaplex.vercel.app/api/movies';
+const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
 
 // Endpoint para obtener la lista de películas
 app.get('/api/movies', async (req, res) => {
   try {
     const response = await fetch(API_URL);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: `Error de la API: ${response.statusText}` });
+    }
     const data = await response.json();
     res.json(data);
   } catch (error) {
