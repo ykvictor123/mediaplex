@@ -1,33 +1,23 @@
+// movies.js en la carpeta /api
 export default async function handler(req, res) {
-  const baseUrl = "https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list";
-  const allMovies = [];
-  let currentPage = 1;
-  let hasNextPage = true;
+  const page = parseInt(req.query.page) || 1; // Página solicitada
+  const limit = 10; // Número de películas por página
+  const offset = (page - 1) * limit; // Calcular el desplazamiento
 
-  try {
-    while (hasNextPage) {
-      const response = await fetch(`${baseUrl}?page=${currentPage}`);
-      const data = await response.json();
+  // Aquí simulas los datos (puedes conectar a una base de datos o API real)
+  const movies = [
+    { name: "Película 1", slug: "movie1", resolution: "1080p", status: "Ready" },
+    { name: "Película 2", slug: "movie2", resolution: "720p", status: "Ready" },
+    // Agrega más películas según sea necesario
+  ];
 
-      if (data.status && data.items && data.items.length > 0) {
-        // Agregar películas a la lista total
-        allMovies.push(...data.items);
+  // Paginar las películas
+  const paginatedMovies = movies.slice(offset, offset + limit);
 
-        // Determinar si hay una siguiente página
-        if (data.pagination && data.pagination.next > currentPage) {
-          currentPage = data.pagination.next;
-        } else {
-          hasNextPage = false;
-        }
-      } else {
-        hasNextPage = false;
-      }
-    }
-
-    // Devolver todas las películas al cliente
-    res.status(200).json({ items: allMovies });
-  } catch (error) {
-    console.error("Error al obtener las películas de Hydrax:", error);
-    res.status(500).json({ status: false, msg: "Error al cargar las películas." });
-  }
+  // Respuesta
+  res.status(200).json({
+    items: paginatedMovies,
+    page: page,
+    hasMore: offset + limit < movies.length, // Si hay más películas
+  });
 }
