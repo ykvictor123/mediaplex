@@ -1,7 +1,3 @@
-const API_URL = 'https://mediaplex.vercel.app/api/movies';
-const API_KEY = "708a2826cbb3c7dbd79b10c569049f54";
-const TMDB_API_BASE = "https://api.themoviedb.org/3/search/movie";
-
 async function fetchMovies() {
   const movieGrid = document.getElementById("movie-grid");
   const loadingSpinner = document.getElementById("loading-spinner");
@@ -28,19 +24,6 @@ async function fetchMovies() {
   }
 }
 
-async function fetchPoster(movieName) {
-  try {
-    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(movieName)}`);
-    const data = await response.json();
-    return data.results[0]?.poster_path
-      ? `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`
-      : "default-poster.jpg"; // Imagen por defecto
-  } catch (error) {
-    console.error("Error al obtener el póster:", error);
-    return "default-poster.jpg";
-  }
-}
-
 function createMovieCard(movie, posterUrl) {
   const card = document.createElement("div");
   card.className = "movie-card";
@@ -49,14 +32,14 @@ function createMovieCard(movie, posterUrl) {
     <img src="${posterUrl}" alt="${movie.name}" class="movie-poster">
     <h3>${movie.name}</h3>
     <p>Resolución: ${movie.resolution}p</p>
-    <p>Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</p>
     <button class="play-button" onclick="playMovie('${movie.slug}', '${movie.name}')">Reproducir</button>
-    <button class="manual-search-btn" data-name="${movie.name}">Buscar Portada</button>
+    <button class="manual-search-btn" data-name="${movie.name}" data-id="${movie.slug}">Buscar Portada</button>
   `;
 
   return card;
 }
 
+// Lógica para abrir el reproductor
 function playMovie(slug, title) {
   const playerContainer = document.getElementById("player-container");
   const moviePlayer = document.getElementById("movie-player");
@@ -67,6 +50,7 @@ function playMovie(slug, title) {
   playerContainer.classList.remove("hidden");
 }
 
+// Cerrar el reproductor
 document.getElementById("close-player-btn").addEventListener("click", () => {
   const playerContainer = document.getElementById("player-container");
   const moviePlayer = document.getElementById("movie-player");
@@ -79,15 +63,16 @@ document.getElementById("close-player-btn").addEventListener("click", () => {
 document.addEventListener("click", (event) => {
   if (event.target.classList.contains("manual-search-btn")) {
     const movieName = event.target.getAttribute("data-name");
-    openManualSearchModal(movieName, event.target);
+    const movieId = event.target.getAttribute("data-id");
+    openManualSearchModal(movieName, movieId);
   }
 });
 
-function openManualSearchModal(movieName = "", button) {
+function openManualSearchModal(movieName = "", movieId) {
   const modal = document.getElementById("manual-search-modal");
   const input = document.getElementById("manual-search-input");
   input.value = movieName;
-  modal.dataset.targetButton = button; // Guardar referencia al botón
+  modal.dataset.movieId = movieId; // Guardar el ID de la película
   modal.style.display = "block";
 }
 
@@ -112,8 +97,8 @@ document.getElementById("manual-search-btn").addEventListener("click", async () 
 
 function selectPoster(posterPath) {
   const modal = document.getElementById("manual-search-modal");
-  const button = modal.dataset.targetButton;
-  const card = button.closest(".movie-card");
+  const movieId = modal.dataset.movieId;
+  const card = document.querySelector(`.manual-search-btn[data-id="${movieId}"]`).closest(".movie-card");
 
   const img = card.querySelector(".movie-poster");
   img.src = `https://image.tmdb.org/t/p/w500${posterPath}`;
