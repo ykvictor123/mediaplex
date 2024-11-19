@@ -47,7 +47,7 @@
     </div>
 
     <script>
-        // URL de la API alojada en Vercel
+        // URL de la API en Vercel
         const API_URL = 'https://mediaplex.vercel.app/api/videos';
 
         // Función para obtener los videos desde la API
@@ -59,6 +59,13 @@
                 }
 
                 const data = await response.json();
+
+                // Validar que data.items sea un array
+                if (!data.items || !Array.isArray(data.items)) {
+                    throw new Error("Estructura inesperada: No se encontró la lista de 'items'.");
+                }
+
+                // Filtrar solo las películas con "status: Ready"
                 const movies = data.items.filter(item => item.status === "Ready").map(video => ({
                     title: video.name,
                     slug: video.slug,
@@ -80,7 +87,7 @@
         // Función para mostrar los videos en la página
         function renderMovies(movies) {
             const moviesContainer = document.getElementById('movies-list');
-            moviesContainer.innerHTML = '';
+            moviesContainer.innerHTML = ''; // Limpiar la lista existente
             movies.forEach(movie => {
                 const movieCard = `
                     <div class="col-md-4">
@@ -94,6 +101,13 @@
                 `;
                 moviesContainer.innerHTML += movieCard;
             });
+        }
+
+        // Función para mostrar un mensaje de error
+        function showErrorMessage(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = message;
         }
 
         // Iniciar la carga de películas al cargar la página
