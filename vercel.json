@@ -1,5 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/movies", "destination": "/api/movies.js" }
-  ]
-}
