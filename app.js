@@ -50,30 +50,44 @@ function createMovieCard(movie, posterUrl) {
     <h3>${movie.name}</h3>
     <p>Resolución: ${movie.resolution}p</p>
     <p>Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</p>
-    <button class="play-button" onclick="playMovie('${movie.slug}')">Reproducir</button>
-    <button class="play-button manual-search-btn" data-name="${movie.name}">Buscar Portada</button>
+    <button class="play-button" onclick="playMovie('${movie.slug}', '${movie.name}')">Reproducir</button>
+    <button class="manual-search-btn" data-name="${movie.name}">Buscar Portada</button>
   `;
 
   return card;
 }
 
-function playMovie(slug) {
-  const playerUrl = `https://short.ink/${slug}`;
-  window.open(playerUrl, "_blank");
+function playMovie(slug, title) {
+  const playerContainer = document.getElementById("player-container");
+  const moviePlayer = document.getElementById("movie-player");
+  const playerTitle = document.getElementById("player-title");
+
+  playerTitle.textContent = `Reproduciendo: ${title}`;
+  moviePlayer.src = `https://short.ink/${slug}`;
+  playerContainer.classList.remove("hidden");
 }
+
+document.getElementById("close-player-btn").addEventListener("click", () => {
+  const playerContainer = document.getElementById("player-container");
+  const moviePlayer = document.getElementById("movie-player");
+
+  moviePlayer.src = ""; // Detener la reproducción
+  playerContainer.classList.add("hidden");
+});
 
 // Búsqueda manual de portadas
 document.addEventListener("click", (event) => {
   if (event.target.classList.contains("manual-search-btn")) {
     const movieName = event.target.getAttribute("data-name");
-    openManualSearchModal(movieName);
+    openManualSearchModal(movieName, event.target);
   }
 });
 
-function openManualSearchModal(movieName = "") {
+function openManualSearchModal(movieName = "", button) {
   const modal = document.getElementById("manual-search-modal");
   const input = document.getElementById("manual-search-input");
   input.value = movieName;
+  modal.dataset.targetButton = button; // Guardar referencia al botón
   modal.style.display = "block";
 }
 
@@ -98,8 +112,12 @@ document.getElementById("manual-search-btn").addEventListener("click", async () 
 
 function selectPoster(posterPath) {
   const modal = document.getElementById("manual-search-modal");
+  const button = modal.dataset.targetButton;
+  const card = button.closest(".movie-card");
+
+  const img = card.querySelector(".movie-poster");
+  img.src = `https://image.tmdb.org/t/p/w500${posterPath}`;
   modal.style.display = "none";
-  alert(`Has seleccionado esta portada: ${posterPath}`);
 }
 
 document.querySelector(".close-btn").addEventListener("click", () => {
