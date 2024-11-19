@@ -1,8 +1,7 @@
 export default async function handler(req, res) {
   const baseUrl = "https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list";
-  const page = parseInt(req.query.page) || 1;
   const fullData = [];
-  let currentPage = page;
+  let currentPage = 1;
   let hasNextPage = true;
 
   try {
@@ -14,7 +13,7 @@ export default async function handler(req, res) {
         fullData.push(...data.items);
 
         // Si hay más páginas, continúa
-        if (data.pagination && data.pagination.next) {
+        if (data.pagination && data.pagination.next > currentPage) {
           currentPage = data.pagination.next;
         } else {
           hasNextPage = false;
