@@ -1,13 +1,8 @@
 {
-  "name": "mediaplex",
+  "name": "mediaplex-backend",
   "version": "1.0.0",
-  "description": "Plataforma de películas tipo Netflix usando Hydrax API",
+  "description": "Backend para Mediaplex",
   "main": "index.js",
-  "scripts": {
-    "start": "vercel dev",
-    "build": "vercel build",
-    "deploy": "vercel deploy"
-  },
   "dependencies": {
     "node-fetch": "^2.6.7"
   }
