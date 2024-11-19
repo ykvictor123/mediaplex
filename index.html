@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,84 +24,5 @@
     <p>Mediaplex &copy; 2024</p>
   </footer>
   <script src="app.js"></script>
-</body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">MediaPlex</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div id="error-message" style="display: none;"></div>
-        <div id="movies-list" class="row g-3"></div>
-    </div>
-
-    <script>
-        // URL de la API en Vercel
-        const API_URL = 'https://mediaplex.vercel.app/api/videos';
-
-        // Función para obtener los videos desde la API
-        async function fetchMovies() {
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) {
-                    throw new Error(`Error de la API: ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-
-                // Validar que data.items sea un array
-                if (!data.items || !Array.isArray(data.items)) {
-                    throw new Error("Estructura inesperada: No se encontró la lista de 'items'.");
-                }
-
-                // Filtrar solo las películas con "status: Ready"
-                const movies = data.items.filter(item => item.status === "Ready").map(video => ({
-                    title: video.name,
-                    slug: video.slug,
-                    resolution: video.resolution,
-                    embedUrl: `https://short.ink/${video.slug}`
-                }));
-
-                if (movies.length === 0) {
-                    throw new Error("No hay películas disponibles.");
-                }
-
-                renderMovies(movies);
-            } catch (error) {
-                console.error('Error al cargar las películas:', error);
-                showErrorMessage(`Error al cargar las películas: ${error.message}`);
-            }
-        }
-
-        // Función para mostrar los videos en la página
-        function renderMovies(movies) {
-            const moviesContainer = document.getElementById('movies-list');
-            moviesContainer.innerHTML = ''; // Limpiar la lista existente
-            movies.forEach(movie => {
-                const movieCard = `
-                    <div class="col-md-4">
-                        <div class="card movie-card">
-                            <iframe src="${movie.embedUrl}" frameborder="0" scrolling="0" allowfullscreen></iframe>
-                            <div class="card-body">
-                                <h5 class="card-title">${movie.title} (${movie.resolution}p)</h5>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                moviesContainer.innerHTML += movieCard;
-            });
-        }
-
-        // Función para mostrar un mensaje de error
-        function showErrorMessage(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.style.display = 'block';
-            errorMessage.textContent = message;
-        }
-
-        // Iniciar la carga de películas al cargar la página
-        document.addEventListener('DOMContentLoaded', fetchMovies);
-    </script>
 </body>
 </html>
