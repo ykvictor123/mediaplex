@@ -1,49 +1,87 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mediaplex - Transmitiendo Películas</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <button class="sidebar-toggle">☰ Categorías</button>
-  <div class="sidebar">
-    <ul class="genre-list" id="genreList">
-      <li class="genre-header">Categorías</li>
-      <li class="genre-item" data-type="movie" data-id="action">Acción</li>
-      <li class="genre-item" data-type="movie" data-id="comedy">Comedia</li>
-      <li class="genre-item" data-type="movie" data-id="drama">Drama</li>
-    </ul>
-  </div>
-  <div class="container">
-    <header>
-      <div class="header-top">
-        <h1>Mediaplex</h1>
-      </div>
-    </header>
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #141414;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
 
-    <div class="search-container">
-      <input type="text" id="searchInput" placeholder="Buscar películas o series...">
-      <button id="searchButton">Buscar</button>
-      <div id="searchHistory" class="search-history"></div>
-    </div>
+h1 {
+  color: #00bfff;
+  text-align: center;
+  margin: 20px 0;
+}
 
-    <section class="media-section">
-      <div id="mediaGrid" class="media-grid"></div>
-    </section>
-  </div>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-  <div id="playerModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <div class="video-container">
-        <iframe id="player" frameborder="0" allowfullscreen></iframe>
-      </div>
-    </div>
-  </div>
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
 
-  <script src="app.js"></script>
-</body>
-</html>
+.media-item {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.media-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.media-item:hover {
+  transform: scale(1.05);
+}
+
+.video-container iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10;
+}
+
+.modal-content {
+  position: relative;
+  margin: 5% auto;
+  padding: 20px;
+  background: #232323;
+  border-radius: 10px;
+  max-width: 900px;
+}
+
+.modal-content img {
+  width: 100px;
+  height: 150px;
+  object-fit: cover;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.close,
+.close-btn {
+  color: white;
+  font-size: 28px;
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  cursor: pointer;
+}
