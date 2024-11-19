@@ -21,7 +21,7 @@ async function fetchMovies() {
         <img src="${metadata.poster}" alt="${movie.name}">
         <h3>${metadata.title}</h3>
       `;
-      item.addEventListener('click', () => playMovie(movie.slug));
+      item.addEventListener('click', () => playMovie(movie.slug, metadata.title));
       mediaGrid.appendChild(item);
     }
   } catch (error) {
@@ -54,7 +54,7 @@ async function fetchMetadata(name) {
   return { title: name, poster: 'https://via.placeholder.com/150' };
 }
 
-function playMovie(slug) {
+function playMovie(slug, title) {
   const player = document.getElementById('player');
   const modal = document.getElementById('playerModal');
 
