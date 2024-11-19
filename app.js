@@ -1,3 +1,8 @@
+// URL completa del backend en Vercel
+const API_URL = 'https://mediaplex.vercel.app/api/movies';
+const API_KEY = "708a2826cbb3c7dbd79b10c569049f54";
+const TMDB_API_BASE = "https://api.themoviedb.org/3/search/movie";
+
 async function fetchMovies() {
   const movieGrid = document.getElementById("movie-grid");
   const loadingSpinner = document.getElementById("loading-spinner");
@@ -24,6 +29,19 @@ async function fetchMovies() {
   }
 }
 
+async function fetchPoster(movieName) {
+  try {
+    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(movieName)}`);
+    const data = await response.json();
+    return data.results[0]?.poster_path
+      ? `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`
+      : "default-poster.jpg"; // Imagen por defecto
+  } catch (error) {
+    console.error("Error al obtener el póster:", error);
+    return "default-poster.jpg";
+  }
+}
+
 function createMovieCard(movie, posterUrl) {
   const card = document.createElement("div");
   card.className = "movie-card";
@@ -39,7 +57,6 @@ function createMovieCard(movie, posterUrl) {
   return card;
 }
 
-// Lógica para abrir el reproductor
 function playMovie(slug, title) {
   const playerContainer = document.getElementById("player-container");
   const moviePlayer = document.getElementById("movie-player");
@@ -50,7 +67,6 @@ function playMovie(slug, title) {
   playerContainer.classList.remove("hidden");
 }
 
-// Cerrar el reproductor
 document.getElementById("close-player-btn").addEventListener("click", () => {
   const playerContainer = document.getElementById("player-container");
   const moviePlayer = document.getElementById("movie-player");
