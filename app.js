@@ -1,4 +1,4 @@
-const API_URL = 'https://mediaplex.vercel.app/api/movies';
+const API_URL = 'https://mediaplex.vercel.app/movies';
 const TMDB_API_KEY = '708a2826cbb3c7dbd79b10c569049f54';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
