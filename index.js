@@ -1,6 +1,10 @@
 const express = require('express');
 const fetch = require('node-fetch');
+const cors = require('cors'); // Importar CORS
 const app = express();
+
+// Habilitar CORS para todos los dominios
+app.use(cors());
 
 // URL de la API de Hydrax
 const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
@@ -21,5 +25,5 @@ app.get('/api/videos', async (req, res) => {
     }
 });
 
-// Exportar el módulo para Vercel
+// Exportar la app de Express para que Vercel la use
 module.exports = app;
