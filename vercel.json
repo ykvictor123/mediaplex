@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/movies", "destination": "/api/movies.js" }
+    { "source": "/api/movies", "destination": "/movies.js" }
   ]
 }
