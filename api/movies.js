@@ -6,14 +6,12 @@ export default async function handler(req, res) {
 
   try {
     while (hasNextPage) {
-      // Solicitar datos de la API de Hydrax
       const response = await fetch(`${baseUrl}?page=${currentPage}`);
       const data = await response.json();
 
-      if (data.status && data.items) {
+      if (data.status && data.items && data.items.length > 0) {
         allMovies.push(...data.items);
 
-        // Verificar si hay más páginas
         if (data.pagination && data.pagination.next > currentPage) {
           currentPage = data.pagination.next;
         } else {
@@ -24,7 +22,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Enviar los datos completos al frontend
     res.status(200).json({ items: allMovies });
   } catch (error) {
     console.error("Error al obtener las películas de Hydrax:", error);
