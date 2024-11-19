@@ -49,30 +49,4 @@ function createMovieCard(movie, posterUrl) {
     <img src="${posterUrl}" alt="${movie.name}" class="movie-poster">
     <h3>${movie.name}</h3>
     <p>Resolución: ${movie.resolution}p</p>
-    <p>Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</p>
-  `;
-
-  return card;
-}
-
-document.getElementById("filter-btn").addEventListener("click", () => {
-  const searchTerm = document.getElementById("search-bar").value.toLowerCase();
-  const resolution = document.getElementById("resolution-filter").value;
-
-  const allMovies = document.querySelectorAll(".movie-card");
-  allMovies.forEach((card) => {
-    const title = card.querySelector("h3").textContent.toLowerCase();
-    const res = card.querySelector("p:nth-of-type(1)").textContent;
-
-    if (
-      (!searchTerm || title.includes(searchTerm)) &&
-      (!resolution || res.includes(resolution))
-    ) {
-      card.style.display = "block";
-    } else {
-      card.style.display = "none";
-    }
-  });
-});
-
-fetchMovies();
+    <p>Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</
