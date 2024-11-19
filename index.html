@@ -3,132 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediaPlex - Películas</title>
+  <title>Mediaplex - Transmitiendo Películas</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #141414;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    h1 {
-      font-size: 2.5rem;
-      color: #e50914;
-    }
-    .media-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-    }
-    .media-item {
-      background-color: #232323;
-      border-radius: 5px;
-      overflow: hidden;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .media-item:hover {
-      transform: scale(1.05);
-    }
-    .media-item img {
-      width: 100%;
-      height: auto;
-    }
-    .media-title {
-      font-size: 1rem;
-      margin: 10px 0;
-      color: #fff;
-    }
-    .media-resolution {
-      font-size: 0.9rem;
-      color: #ffd700;
-    }
-    #error-message {
-      color: #ff0000;
-      text-align: center;
-      margin: 20px 0;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>MediaPlex</h1>
-  </header>
+  <button class="sidebar-toggle">☰ Categorías</button>
+  <div class="sidebar">
+    <ul class="genre-list" id="genreList">
+      <li class="genre-header">Categorías</li>
+      <li class="genre-item" data-type="movie" data-id="action">Acción</li>
+      <li class="genre-item" data-type="movie" data-id="comedy">Comedia</li>
+      <li class="genre-item" data-type="movie" data-id="drama">Drama</li>
+    </ul>
+  </div>
   <div class="container">
-    <div id="error-message" style="display: none;"></div>
-    <div id="mediaGrid" class="media-grid"></div>
+    <header>
+      <div class="header-top">
+        <h1>Mediaplex</h1>
+      </div>
+    </header>
+
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Buscar películas o series...">
+      <button id="searchButton">Buscar</button>
+      <div id="searchHistory" class="search-history"></div>
+    </div>
+
+    <section class="media-section">
+      <div id="mediaGrid" class="media-grid"></div>
+    </section>
   </div>
 
-  <script>
-    const API_URL = 'https://mediaplex.vercel.app/api/videos';
+  <div id="playerModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div class="video-container">
+        <iframe id="player" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
-    async function fetchMovies() {
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error(`Error de la API: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        // Validar que la estructura del JSON sea correcta
-        if (!data.items || !Array.isArray(data.items)) {
-          throw new Error("Estructura inesperada de la respuesta de la API.");
-        }
-
-        // Filtrar películas listas para mostrar
-        const movies = data.items.filter(item => item.status === "Ready").map(item => ({
-          title: item.name,
-          resolution: item.resolution,
-          embedUrl: `https://short.ink/${item.slug}`
-        }));
-
-        if (movies.length === 0) {
-          throw new Error("No hay películas disponibles.");
-        }
-
-        renderMovies(movies);
-      } catch (error) {
-        showError(error.message);
-      }
-    }
-
-    function renderMovies(movies) {
-      const mediaGrid = document.getElementById('mediaGrid');
-      mediaGrid.innerHTML = ''; // Limpiar contenido previo
-
-      movies.forEach(movie => {
-        const mediaItem = document.createElement('div');
-        mediaItem.className = 'media-item';
-        mediaItem.innerHTML = `
-          <iframe src="${movie.embedUrl}" width="100%" height="200" frameborder="0" allowfullscreen></iframe>
-          <h3 class="media-title">${movie.title}</h3>
-          <p class="media-resolution">Resolución: ${movie.resolution}p</p>
-        `;
-        mediaGrid.appendChild(mediaItem);
-      });
-    }
-
-    function showError(message) {
-      const errorMessage = document.getElementById('error-message');
-      errorMessage.style.display = 'block';
-      errorMessage.textContent = message;
-    }
-
-    // Iniciar la carga de películas al cargar la página
-    document.addEventListener('DOMContentLoaded', fetchMovies);
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
