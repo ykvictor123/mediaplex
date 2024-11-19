@@ -1,87 +1,60 @@
-body {
-  font-family: 'Roboto', sans-serif;
-  background-color: #141414;
-  color: #fff;
-  margin: 0;
-  padding: 0;
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mediaplex - Transmitiendo Películas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"> <!-- Referencia al archivo CSS -->
+</head>
+<body>
+  <!-- Sidebar para Categorías -->
+  <button class="sidebar-toggle">☰ Categorías</button>
+  <div class="sidebar">
+    <ul class="genre-list" id="genreList"></ul>
+  </div>
 
-h1 {
-  color: #00bfff;
-  text-align: center;
-  margin: 20px 0;
-}
+  <!-- Contenedor Principal -->
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>Mediaplex</h1>
+      </div>
+    </header>
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
+    <!-- Buscador -->
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Buscar películas o series...">
+      <button id="searchButton">Buscar</button>
+    </div>
 
-.media-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
+    <!-- Sección de Películas -->
+    <section class="media-section">
+      <div id="mediaGrid" class="media-grid"></div>
+    </section>
+  </div>
 
-.media-item {
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
+  <!-- Modal para Reproducción -->
+  <div id="playerModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div class="video-container">
+        <iframe id="player" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
-.media-item img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
+  <!-- Modal para Búsqueda Manual de Portadas -->
+  <div id="manual-search-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h3>Búsqueda manual de portada</h3>
+      <input type="text" id="manual-search-input" placeholder="Ingrese el nombre de la película">
+      <button id="manual-search-btn">Buscar</button>
+      <div id="manual-search-results"></div>
+    </div>
+  </div>
 
-.media-item:hover {
-  transform: scale(1.05);
-}
-
-.video-container iframe {
-  width: 100%;
-  height: 100%;
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10;
-}
-
-.modal-content {
-  position: relative;
-  margin: 5% auto;
-  padding: 20px;
-  background: #232323;
-  border-radius: 10px;
-  max-width: 900px;
-}
-
-.modal-content img {
-  width: 100px;
-  height: 150px;
-  object-fit: cover;
-  margin: 5px;
-  cursor: pointer;
-}
-
-.close,
-.close-btn {
-  color: white;
-  font-size: 28px;
-  position: absolute;
-  right: 15px;
-  top: 10px;
-  cursor: pointer;
-}
+  <script src="app.js"></script> <!-- Referencia al archivo JS -->
+</body>
+</html>
