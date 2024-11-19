@@ -1,31 +1,36 @@
+const API_URL = 'https://mediaplex.vercel.app/api/movies';
 const API_KEY = "708a2826cbb3c7dbd79b10c569049f54";
-const API_BASE = "https://api.themoviedb.org/3/search/movie";
+const TMDB_API_BASE = "https://api.themoviedb.org/3/search/movie";
 
 async function fetchMovies() {
   const movieGrid = document.getElementById("movie-grid");
   const loadingSpinner = document.getElementById("loading-spinner");
 
   try {
-    // API para obtener la lista de películas
-    const response = await fetch('/api/movies');
-    const { items } = await response.json();
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+      throw new Error(`Error al cargar las películas: ${response.status}`);
+    }
 
-    // Limpia el spinner y renderiza
+    const { items } = await response.json();
     loadingSpinner.style.display = "none";
 
     items.forEach(async (movie) => {
-      const posterUrl = await fetchPoster(movie.name);
-      const movieCard = createMovieCard(movie, posterUrl);
-      movieGrid.appendChild(movieCard);
+      if (movie.status === "Ready") {
+        const posterUrl = await fetchPoster(movie.name);
+        const movieCard = createMovieCard(movie, posterUrl);
+        movieGrid.appendChild(movieCard);
+      }
     });
   } catch (error) {
+    console.error(error);
     movieGrid.innerHTML = `<p>Error al cargar las películas: ${error.message}</p>`;
   }
 }
 
 async function fetchPoster(movieName) {
   try {
-    const response = await fetch(`${API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(movieName)}`);
+    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(movieName)}`);
     const data = await response.json();
     return data.results[0]?.poster_path
       ? `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`
@@ -50,7 +55,6 @@ function createMovieCard(movie, posterUrl) {
   return card;
 }
 
-// Filtrar las películas
 document.getElementById("filter-btn").addEventListener("click", () => {
   const searchTerm = document.getElementById("search-bar").value.toLowerCase();
   const resolution = document.getElementById("resolution-filter").value;
