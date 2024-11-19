@@ -1,38 +1,44 @@
-const API_URL = 'https://cors-anywhere.herokuapp.com/https://mediaplex.vercel.app/api/movies';
+const API_URL = 'https://mediaplex.vercel.app/api/movies';
 const TMDB_API_KEY = '708a2826cbb3c7dbd79b10c569049f54';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
-async function fetchMovies() {
+let allMovies = []; // Lista completa de películas
+
+// Cargar todas las páginas de la API
+async function fetchAllMovies() {
   const mediaGrid = document.getElementById('mediaGrid');
   mediaGrid.innerHTML = 'Cargando películas...';
 
   try {
-    const response = await fetch(API_URL);
-    const { items } = await response.json();
+    let page = 1;
+    let hasMorePages = true;
 
-    mediaGrid.innerHTML = '';
-    for (const movie of items) {
-      const metadata = await fetchMetadata(movie.name);
+    while (hasMorePages) {
+      const response = await fetch(`${API_URL}?page=${page}`);
+      const data = await response.json();
 
-      const item = document.createElement('div');
-      item.className = 'media-item';
-      item.innerHTML = `
-        <img src="${metadata.poster}" alt="${movie.name}">
-        <h3>${metadata.title}</h3>
-      `;
-      item.addEventListener('click', () => playMovie(movie.slug, metadata.title));
-      mediaGrid.appendChild(item);
+      if (data.items && data.items.length > 0) {
+        allMovies.push(...data.items);
+        page += 1; // Siguiente página
+        hasMorePages = data.pagination && data.pagination.next; // ¿Hay más páginas?
+      } else {
+        hasMorePages = false; // No más datos
+      }
     }
+
+    mediaGrid.innerHTML = ''; // Limpiar el contenedor
+    allMovies.forEach((movie) => displayMovie(movie)); // Mostrar todas las películas
   } catch (error) {
     mediaGrid.innerHTML = '<p>Error al cargar las películas.</p>';
     console.error(error);
   }
 }
 
+// Buscar portadas y metadatos en TMDB
 async function fetchMetadata(name) {
+  const title = name.split('(')[0].trim();
   try {
-    const title = name.split('(')[0].trim();
     const response = await fetch(
       `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`
     );
@@ -51,12 +57,29 @@ async function fetchMetadata(name) {
     console.error('Error al buscar metadatos:', error);
   }
 
+  // Si falla, devolver valores predeterminados
   return { title: name, poster: 'https://via.placeholder.com/150' };
 }
 
+// Mostrar película en la cuadrícula
+async function displayMovie(movie) {
+  const mediaGrid = document.getElementById('mediaGrid');
+  const metadata = await fetchMetadata(movie.name);
+
+  const item = document.createElement('div');
+  item.className = 'media-item';
+  item.innerHTML = `
+    <img src="${metadata.poster}" alt="${movie.name}">
+    <h3>${metadata.title}</h3>
+  `;
+  item.addEventListener('click', () => playMovie(movie.slug, metadata.title));
+  mediaGrid.appendChild(item);
+}
+
+// Reproducir película
 function playMovie(slug, title) {
-  const modal = document.getElementById('playerModal');
   const player = document.getElementById('player');
+  const modal = document.getElementById('playerModal');
 
   player.src = `https://short.ink/${slug}`;
   modal.style.display = 'block';
@@ -67,4 +90,5 @@ function playMovie(slug, title) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', fetchMovies);
+// Cargar todas las películas al iniciar
+document.addEventListener('DOMContentLoaded', fetchAllMovies);
