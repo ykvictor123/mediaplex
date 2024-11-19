@@ -49,4 +49,61 @@ function createMovieCard(movie, posterUrl) {
     <img src="${posterUrl}" alt="${movie.name}" class="movie-poster">
     <h3>${movie.name}</h3>
     <p>Resolución: ${movie.resolution}p</p>
-    <p>Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</
+    <p>Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</p>
+    <button class="play-button" onclick="playMovie('${movie.slug}')">Reproducir</button>
+    <button class="play-button manual-search-btn" data-name="${movie.name}">Buscar Portada</button>
+  `;
+
+  return card;
+}
+
+function playMovie(slug) {
+  const playerUrl = `https://short.ink/${slug}`;
+  window.open(playerUrl, "_blank");
+}
+
+// Búsqueda manual de portadas
+document.addEventListener("click", (event) => {
+  if (event.target.classList.contains("manual-search-btn")) {
+    const movieName = event.target.getAttribute("data-name");
+    openManualSearchModal(movieName);
+  }
+});
+
+function openManualSearchModal(movieName = "") {
+  const modal = document.getElementById("manual-search-modal");
+  const input = document.getElementById("manual-search-input");
+  input.value = movieName;
+  modal.style.display = "block";
+}
+
+document.getElementById("manual-search-btn").addEventListener("click", async () => {
+  const query = document.getElementById("manual-search-input").value;
+  const resultsDiv = document.getElementById("manual-search-results");
+  resultsDiv.innerHTML = "Buscando...";
+  try {
+    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    resultsDiv.innerHTML = data.results
+      .map(
+        (movie) =>
+          `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" title="${movie.title}" onclick="selectPoster('${movie.poster_path}')">`
+      )
+      .join("");
+  } catch (error) {
+    console.error("Error en la búsqueda manual:", error);
+    resultsDiv.innerHTML = "<p>Error al buscar portadas.</p>";
+  }
+});
+
+function selectPoster(posterPath) {
+  const modal = document.getElementById("manual-search-modal");
+  modal.style.display = "none";
+  alert(`Has seleccionado esta portada: ${posterPath}`);
+}
+
+document.querySelector(".close-btn").addEventListener("click", () => {
+  document.getElementById("manual-search-modal").style.display = "none";
+});
+
+fetchMovies();
