@@ -1,0 +1,236 @@
+<html><head><base href="/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlexStyle Movie Library</title>
+
+<style>
+:root {
+  --bg-dark: #1f1f1f;
+  --bg-darker: #141414;
+  --accent: #e5a00d;
+  --text: #ffffff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-darker);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+  background: var(--bg-dark);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.movie-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.movie-card:hover {
+  transform: scale(1.05);
+}
+
+.movie-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  background: var(--bg-dark);
+}
+
+.movie-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+}
+
+.movie-title {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent);
+  font-size: 1.5rem;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.loading {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">PlexStyle</div>
+  <nav>Movies</nav>
+</header>
+
+<main class="movie-grid" id="movieGrid">
+  <div class="loading">Loading movies...</div>
+</main>
+
+<script>
+const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list?page=1';
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+
+async function fetchMovies() {
+  try {
+    const response = await fetch(CORS_PROXY + API_URL, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Origin': window.location.origin
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Raw API Response:', data);
+
+    if (data.movies) {
+      console.log('Found movies array in data.movies');
+      return data.movies;
+    } else if (data.data) {
+      console.log('Found movies array in data.data');
+      return data.data;
+    } else if (Array.isArray(data)) {
+      console.log('Response is directly an array');
+      return data;
+    } else if (typeof data === 'object') {
+      console.log('Response is an object, keys:', Object.keys(data));
+      const possibleMovies = Object.values(data).filter(item => 
+        item && typeof item === 'object' && (item.name || item.title || item.thumbnail || item.poster)
+      );
+      if (possibleMovies.length > 0) {
+        return possibleMovies;
+      }
+    }
+    
+    throw new Error('Could not find movies data in the API response');
+  } catch (error) {
+    console.error('Detailed fetch error:', error);
+    throw error;
+  }
+}
+
+function createMovieCard(movie) {
+  console.log('Creating card for movie:', movie);
+  
+  const thumbnailUrl = movie.thumbnail || movie.poster || 'https://via.placeholder.com/300x450';
+  const movieName = movie.name || movie.title || 'Unknown Title';
+  
+  return `
+    <div class="movie-card">
+      <img 
+        class="movie-poster" 
+        src="${thumbnailUrl}"
+        alt="${movieName} poster"
+        loading="lazy"
+        onerror="this.src='https://via.placeholder.com/300x450'"
+      >
+      <div class="movie-info">
+        <h3 class="movie-title">${movieName}</h3>
+      </div>
+    </div>
+  `;
+}
+
+async function initializeMovieGrid() {
+  const movieGrid = document.getElementById('movieGrid');
+  movieGrid.innerHTML = '<div class="loading">Fetching movies...</div>';
+
+  try {
+    const movies = await fetchMovies();
+    console.log('Processed movies:', movies);
+    
+    if (!movies || (Array.isArray(movies) && movies.length === 0)) {
+      throw new Error('No movies data found in the response');
+    }
+    
+    const movieArray = Array.isArray(movies) ? movies : [movies];
+    if (movieArray.length > 0) {
+      movieGrid.innerHTML = movieArray.map(movie => createMovieCard(movie)).join('');
+      console.log(`Successfully rendered ${movieArray.length} movies`);
+    } else {
+      throw new Error('Movie array is empty');
+    }
+  } catch (error) {
+    console.error('Detailed initialization error:', error);
+    movieGrid.innerHTML = `
+      <div class="loading">
+        Error loading movies: ${error.message}<br>
+        Please try enabling CORS access at 
+        <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: var(--accent);">
+          https://cors-anywhere.herokuapp.com/corsdemo
+        </a>
+      </div>
+    `;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initializeMovieGrid);
+
+document.addEventListener('error', function(e) {
+  if (e.target.tagName.toLowerCase() === 'img') {
+    console.log('Image load failed, using fallback:', e.target.src);
+    e.target.src = 'https://via.placeholder.com/300x450';
+  }
+}, true);
+</script>
+
+</body></html>
+
+I've made the following improvements to address the CORS issue:
+
+1. Added a CORS proxy to handle the cross-origin requests
+2. Updated the error message to include instructions for enabling CORS access
+3. Added proper headers for the CORS request
+4. Added a link to the CORS demo page where users can enable access
+
+To make this work, users will need to:
+1. Click the provided link to https://cors-anywhere.herokuapp.com/corsdemo
+2. Click the button to request temporary access to the demo server
+3. Return to this page and refresh
+
+This should resolve the "Failed to fetch" error by properly handling the CORS requirements. The error message now provides clear instructions for users to enable CORS access.
