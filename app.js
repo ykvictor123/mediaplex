@@ -1,70 +1,128 @@
-const API_URL = 'https://mediaplex.vercel.app/movies';
-const TMDB_API_KEY = '708a2826cbb3c7dbd79b10c569049f54';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
+// URL completa del backend en Vercel
+const API_URL = 'https://mediaplex.vercel.app/api/movies';
+const API_KEY = "708a2826cbb3c7dbd79b10c569049f54";
+const TMDB_API_BASE = "https://api.themoviedb.org/3/search/movie";
 
 async function fetchMovies() {
-  const mediaGrid = document.getElementById('mediaGrid');
-  mediaGrid.innerHTML = 'Cargando películas...';
+  const movieGrid = document.getElementById("movie-grid");
+  const loadingSpinner = document.getElementById("loading-spinner");
 
   try {
     const response = await fetch(API_URL);
-    const { items } = await response.json();
-
-    mediaGrid.innerHTML = '';
-    for (const movie of items) {
-      const metadata = await fetchMetadata(movie.name);
-
-      const item = document.createElement('div');
-      item.className = 'media-item';
-      item.innerHTML = `
-        <img src="${metadata.poster}" alt="${movie.name}">
-        <h3>${metadata.title}</h3>
-      `;
-      item.addEventListener('click', () => playMovie(movie.slug, metadata.title));
-      mediaGrid.appendChild(item);
+    if (!response.ok) {
+      throw new Error(`Error al cargar las películas: ${response.status}`);
     }
+
+    const { items } = await response.json();
+    loadingSpinner.style.display = "none";
+
+    items.forEach(async (movie) => {
+      if (movie.status === "Ready") {
+        const posterUrl = await fetchPoster(movie.name);
+        const movieCard = createMovieCard(movie, posterUrl);
+        movieGrid.appendChild(movieCard);
+      }
+    });
   } catch (error) {
-    mediaGrid.innerHTML = '<p>Error al cargar las películas.</p>';
     console.error(error);
+    movieGrid.innerHTML = `<p>Error al cargar las películas: ${error.message}</p>`;
   }
 }
 
-async function fetchMetadata(name) {
+async function fetchPoster(movieName) {
   try {
-    const title = name.split('(')[0].trim();
-    const response = await fetch(
-      `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`
-    );
+    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(movieName)}`);
     const data = await response.json();
-
-    if (data.results && data.results.length > 0) {
-      const movie = data.results[0];
-      return {
-        title: movie.title || name,
-        poster: movie.poster_path
-          ? `${TMDB_IMAGE_URL}${movie.poster_path}`
-          : 'https://via.placeholder.com/150',
-      };
-    }
+    return data.results[0]?.poster_path
+      ? `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`
+      : "default-poster.jpg"; // Imagen por defecto
   } catch (error) {
-    console.error('Error al buscar metadatos:', error);
+    console.error("Error al obtener el póster:", error);
+    return "default-poster.jpg";
   }
+}
 
-  return { title: name, poster: 'https://via.placeholder.com/150' };
+function createMovieCard(movie, posterUrl) {
+  const card = document.createElement("div");
+  card.className = "movie-card";
+
+  card.innerHTML = `
+    <img src="${posterUrl}" alt="${movie.name}" class="movie-poster">
+    <h3>${movie.name}</h3>
+    <p>Resolución: ${movie.resolution}p</p>
+    <button class="play-button" onclick="playMovie('${movie.slug}', '${movie.name}')">Reproducir</button>
+    <button class="manual-search-btn" data-name="${movie.name}" data-id="${movie.slug}">Buscar Portada</button>
+  `;
+
+  return card;
 }
 
 function playMovie(slug, title) {
-  const player = document.getElementById('player');
-  const modal = document.getElementById('playerModal');
+  const playerContainer = document.getElementById("player-container");
+  const moviePlayer = document.getElementById("movie-player");
+  const playerTitle = document.getElementById("player-title");
 
-  player.src = `https://short.ink/${slug}`;
-  modal.style.display = 'block';
-
-  document.querySelector('.close').addEventListener('click', () => {
-    modal.style.display = 'none';
-    player.src = '';
-  });
+  playerTitle.textContent = `Reproduciendo: ${title}`;
+  moviePlayer.src = `https://short.ink/${slug}`;
+  playerContainer.classList.remove("hidden");
 }
 
-document.addEventListener('DOMContentLoaded', fetchMovies);
+document.getElementById("close-player-btn").addEventListener("click", () => {
+  const playerContainer = document.getElementById("player-container");
+  const moviePlayer = document.getElementById("movie-player");
+
+  moviePlayer.src = ""; // Detener la reproducción
+  playerContainer.classList.add("hidden");
+});
+
+// Búsqueda manual de portadas
+document.addEventListener("click", (event) => {
+  if (event.target.classList.contains("manual-search-btn")) {
+    const movieName = event.target.getAttribute("data-name");
+    const movieId = event.target.getAttribute("data-id");
+    openManualSearchModal(movieName, movieId);
+  }
+});
+
+function openManualSearchModal(movieName = "", movieId) {
+  const modal = document.getElementById("manual-search-modal");
+  const input = document.getElementById("manual-search-input");
+  input.value = movieName;
+  modal.dataset.movieId = movieId; // Guardar el ID de la película
+  modal.style.display = "block";
+}
+
+document.getElementById("manual-search-btn").addEventListener("click", async () => {
+  const query = document.getElementById("manual-search-input").value;
+  const resultsDiv = document.getElementById("manual-search-results");
+  resultsDiv.innerHTML = "Buscando...";
+  try {
+    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    resultsDiv.innerHTML = data.results
+      .map(
+        (movie) =>
+          `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" title="${movie.title}" onclick="selectPoster('${movie.poster_path}')">`
+      )
+      .join("");
+  } catch (error) {
+    console.error("Error en la búsqueda manual:", error);
+    resultsDiv.innerHTML = "<p>Error al buscar portadas.</p>";
+  }
+});
+
+function selectPoster(posterPath) {
+  const modal = document.getElementById("manual-search-modal");
+  const movieId = modal.dataset.movieId;
+  const card = document.querySelector(`.manual-search-btn[data-id="${movieId}"]`).closest(".movie-card");
+
+  const img = card.querySelector(".movie-poster");
+  img.src = `https://image.tmdb.org/t/p/w500${posterPath}`;
+  modal.style.display = "none";
+}
+
+document.querySelector(".close-btn").addEventListener("click", () => {
+  document.getElementById("manual-search-modal").style.display = "none";
+});
+
+fetchMovies();
