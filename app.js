@@ -1,5 +1,5 @@
-// URL de la API de Hydrax
-const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
+// URL de tu backend en Vercel
+const API_URL = 'https://mediaplex.vercel.app/api/movies';
 
 // Función para cargar las películas
 async function fetchMovies() {
@@ -32,9 +32,4 @@ async function fetchMovies() {
     });
   } catch (error) {
     console.error('Error al cargar las películas:', error);
-    movieGrid.innerHTML = '<p>No se pudieron cargar las películas. Intenta de nuevo más tarde.</p>';
-  }
-}
-
-// Cargar películas al iniciar la página
-fetchMovies();
+    movieGrid.innerHTML = '<p>No se pudieron cargar las películas. Intenta de nuevo más tarde.
