@@ -1,5 +1,5 @@
-// URL de la API de Hydrax
-const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
+// Cambia esta URL por tu dominio en Vercel
+const API_URL = 'https://<TU_DOMINIO_EN_VERCEL>.vercel.app/api/movies';
 
 // Función para cargar las películas
 async function fetchMovies() {
