@@ -1,6 +1,0 @@
-{
-  "version": 2,
-  "routes": [
-    { "src": "/api/movies", "dest": "api/index.js" }
-  ]
-}
