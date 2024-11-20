@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mediaplex</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Mediaplex</h1>
+  </header>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Buscar películas...">
+    <button id="searchButton">Buscar</button>
+  </div>
+  <section class="media-section">
+    <div id="mediaGrid" class="media-grid"></div>
+  </section>
+  <div id="playerModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <iframe id="player" frameborder="0" allowfullscreen></iframe>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
