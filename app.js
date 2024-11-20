@@ -1,9 +1,9 @@
-// Cambia esta URL por tu dominio en Vercel
-const API_URL = 'https://<TU_DOMINIO_EN_VERCEL>.vercel.app/api/movies';
+// URL de la API de Hydrax
+const API_URL = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
 
 // Función para cargar las películas
 async function fetchMovies() {
-  const movieList = document.getElementById('movie-list');
+  const movieGrid = document.getElementById('movie-grid');
 
   try {
     const response = await fetch(API_URL);
@@ -12,28 +12,29 @@ async function fetchMovies() {
     }
 
     const data = await response.json();
+    movieGrid.innerHTML = ''; // Limpiar contenido previo
 
-    // Mostrar cada película en el contenedor
-    data.items.forEach(movie => {
-      const movieItem = document.createElement('div');
-      movieItem.className = 'movie-item';
+    data.items.forEach((movie) => {
+      // Crear tarjeta para cada película
+      const movieCard = document.createElement('div');
+      movieCard.className = 'movie-card';
 
-      movieItem.innerHTML = `
-        <div class="movie-title">${movie.name}</div>
-        <div class="movie-details">
-          Resolución: ${movie.resolution || 'N/A'}p<br>
-          Tamaño: ${(movie.size / 1e9).toFixed(2)} GB<br>
-          Estado: ${movie.status}
-        </div>
+      // Información de la película
+      movieCard.innerHTML = `
+        <h3>${movie.name}</h3>
+        <p class="movie-resolution">Resolución: ${movie.resolution || 'N/A'}p</p>
+        <p class="movie-size">Tamaño: ${(movie.size / 1e9).toFixed(2)} GB</p>
+        <p class="movie-status">Estado: ${movie.status}</p>
       `;
 
-      movieList.appendChild(movieItem);
+      // Agregar tarjeta al contenedor
+      movieGrid.appendChild(movieCard);
     });
   } catch (error) {
     console.error('Error al cargar las películas:', error);
-    movieList.innerHTML = `<p>No se pudieron cargar las películas. Intenta de nuevo más tarde.</p>`;
+    movieGrid.innerHTML = '<p>No se pudieron cargar las películas. Intenta de nuevo más tarde.</p>';
   }
 }
 
-// Llamar a la función para cargar las películas al cargar la página
+// Cargar películas al iniciar la página
 fetchMovies();
