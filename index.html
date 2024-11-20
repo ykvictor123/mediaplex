@@ -4,26 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mediaplex</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <h1>Mediaplex</h1>
+    <input type="text" id="search-bar" placeholder="Busca películas...">
+    <select id="resolution-filter">
+      <option value="">Todas las resoluciones</option>
+      <option value="720">720p</option>
+      <option value="1080">1080p</option>
+    </select>
+    <button id="filter-btn">Filtrar</button>
   </header>
-  <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Buscar películas...">
-    <button id="searchButton">Buscar</button>
-  </div>
-  <section class="media-section">
-    <div id="mediaGrid" class="media-grid"></div>
-  </section>
-  <div id="playerModal" class="modal">
+  <main>
+    <!-- Reproductor de la película -->
+    <div id="player-container" class="hidden">
+      <h2 id="player-title">Reproduciendo:</h2>
+      <iframe id="movie-player" width="640" height="360" frameborder="0" scrolling="0" allowfullscreen></iframe>
+      <button id="close-player-btn">Cerrar</button>
+    </div>
+
+    <!-- Listado de películas -->
+    <div id="movie-grid">
+      <div id="loading-spinner">Cargando...</div>
+    </div>
+  </main>
+  <footer>
+    <p>Mediaplex &copy; 2024</p>
+  </footer>
+
+  <!-- Modal para búsqueda manual de portadas -->
+  <div id="manual-search-modal" class="modal">
     <div class="modal-content">
-      <span class="close">&times;</span>
-      <iframe id="player" frameborder="0" allowfullscreen></iframe>
+      <span class="close-btn">&times;</span>
+      <h3>Búsqueda manual de portada</h3>
+      <input type="text" id="manual-search-input" placeholder="Ingrese el nombre de la película">
+      <button id="manual-search-btn">Buscar</button>
+      <div id="manual-search-results"></div>
     </div>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
