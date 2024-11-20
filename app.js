@@ -1,7 +1,41 @@
-// URL completa del backend en Vercel
+// URL del backend en Vercel
 const API_URL = 'https://mediaplex.vercel.app/api/movies';
 const API_KEY = "708a2826cbb3c7dbd79b10c569049f54";
 const TMDB_API_BASE = "https://api.themoviedb.org/3/search/movie";
+
+// Guardar portadas seleccionadas en Local Storage
+function savePoster(movieId, posterUrl) {
+  const savedPosters = JSON.parse(localStorage.getItem('savedPosters')) || {};
+  savedPosters[movieId] = posterUrl;
+  localStorage.setItem('savedPosters', JSON.stringify(savedPosters));
+}
+
+// Recuperar portadas seleccionadas de Local Storage
+function getSavedPoster(movieId) {
+  const savedPosters = JSON.parse(localStorage.getItem('savedPosters')) || {};
+  return savedPosters[movieId] || null;
+}
+
+// Extraer título antes del año en paréntesis
+function extractTitle(movieName) {
+  const match = movieName.match(/^(.*?)\s\(\d{4}\)/); // Buscar "Título (Año)"
+  return match ? match[1].trim() : movieName; // Devolver el título o el nombre completo si no se encuentra
+}
+
+// Buscar automáticamente el póster basado en el título
+async function fetchPoster(movieName) {
+  const title = extractTitle(movieName); // Extraer título para una búsqueda más precisa
+  try {
+    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(title)}`);
+    const data = await response.json();
+    return data.results[0]?.poster_path
+      ? `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`
+      : "default-poster.jpg"; // Imagen por defecto
+  } catch (error) {
+    console.error("Error al obtener el póster:", error);
+    return "default-poster.jpg";
+  }
+}
 
 async function fetchMovies() {
   const movieGrid = document.getElementById("movie-grid");
@@ -18,7 +52,8 @@ async function fetchMovies() {
 
     items.forEach(async (movie) => {
       if (movie.status === "Ready") {
-        const posterUrl = await fetchPoster(movie.name);
+        const savedPoster = getSavedPoster(movie.slug); // Recuperar póster guardado
+        const posterUrl = savedPoster || await fetchPoster(movie.name); // Buscar automáticamente si no está guardado
         const movieCard = createMovieCard(movie, posterUrl);
         movieGrid.appendChild(movieCard);
       }
@@ -26,19 +61,6 @@ async function fetchMovies() {
   } catch (error) {
     console.error(error);
     movieGrid.innerHTML = `<p>Error al cargar las películas: ${error.message}</p>`;
-  }
-}
-
-async function fetchPoster(movieName) {
-  try {
-    const response = await fetch(`${TMDB_API_BASE}?api_key=${API_KEY}&query=${encodeURIComponent(movieName)}`);
-    const data = await response.json();
-    return data.results[0]?.poster_path
-      ? `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`
-      : "default-poster.jpg"; // Imagen por defecto
-  } catch (error) {
-    console.error("Error al obtener el póster:", error);
-    return "default-poster.jpg";
   }
 }
 
@@ -67,6 +89,7 @@ function playMovie(slug, title) {
   playerContainer.classList.remove("hidden");
 }
 
+// Cerrar el reproductor
 document.getElementById("close-player-btn").addEventListener("click", () => {
   const playerContainer = document.getElementById("player-container");
   const moviePlayer = document.getElementById("movie-player");
@@ -118,6 +141,7 @@ function selectPoster(posterPath) {
 
   const img = card.querySelector(".movie-poster");
   img.src = `https://image.tmdb.org/t/p/w500${posterPath}`;
+  savePoster(movieId, img.src); // Guardar la portada seleccionada en Local Storage
   modal.style.display = "none";
 }
 
@@ -125,4 +149,5 @@ document.querySelector(".close-btn").addEventListener("click", () => {
   document.getElementById("manual-search-modal").style.display = "none";
 });
 
+// Iniciar la carga de películas
 fetchMovies();
