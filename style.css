@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #121212;
-  color: #ffffff;
+  color: #fff;
 }
 
 header {
@@ -16,25 +16,35 @@ main {
   padding: 20px;
 }
 
-#movie-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+#movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
 }
 
-.movie-item {
-  padding: 10px;
-  border: 1px solid #444;
-  border-radius: 5px;
+.movie-card {
   background-color: #1c1c1c;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.movie-title {
-  font-size: 18px;
+.movie-card h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.movie-card p {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.movie-card .movie-resolution {
+  color: #4caf50;
   font-weight: bold;
 }
 
-.movie-details {
-  font-size: 14px;
-  color: #aaa;
+.movie-card .movie-size {
+  color: #ff9800;
 }
