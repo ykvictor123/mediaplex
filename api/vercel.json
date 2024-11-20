@@ -1,5 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/movies", "destination": "/api/movies" }
-  ]
-}
