@@ -50,6 +50,19 @@
         <div id="mediaGrid" class="media-grid"></div>
     </div>
 
+    <!-- Modal para Seleccionar Coincidencia -->
+    <div class="modal fade" id="selectionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Seleccionar Película</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="selectionBody"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para Reproducir Película -->
     <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -106,10 +119,16 @@
                 const data = await response.json();
 
                 if (data.results && data.results.length > 0) {
-                    const metadata = data.results[0]; // Usar la primera coincidencia
-                    renderMovie(metadata, slug);
+                    if (data.results.length === 1) {
+                        // Si hay una coincidencia exacta
+                        renderMovie(data.results[0], slug);
+                    } else {
+                        // Si hay varias coincidencias, muestra un listado para seleccionar
+                        showSelectionModal(data.results, slug);
+                    }
                 } else {
-                    console.warn('No se encontraron coincidencias para:', query);
+                    // Si no hay coincidencias, muestra con imagen genérica
+                    renderMovie({ title: query, poster_path: null }, slug);
                 }
             } catch (error) {
                 console.error('Error al buscar metadatos:', error);
@@ -126,6 +145,30 @@
             `;
             item.addEventListener('click', () => playMovie(slug));
             mediaGrid.appendChild(item);
+        }
+
+        function showSelectionModal(results, slug) {
+            const selectionBody = document.getElementById('selectionBody');
+            selectionBody.innerHTML = results.map(result => `
+                <div class="d-inline-block text-center">
+                    <img src="${result.poster_path ? TMDB_IMAGE_URL + result.poster_path : 'https://via.placeholder.com/150'}" alt="${result.title}" onclick="selectMovie(${result.id}, '${slug}')">
+                    <p>${result.title} (${result.release_date ? result.release_date.split('-')[0] : 'N/A'})</p>
+                </div>
+            `).join('');
+            const modal = new bootstrap.Modal(document.getElementById('selectionModal'));
+            modal.show();
+        }
+
+        async function selectMovie(movieId, slug) {
+            try {
+                const response = await fetch(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}`);
+                const metadata = await response.json();
+                renderMovie(metadata, slug);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('selectionModal'));
+                modal.hide();
+            } catch (error) {
+                console.error('Error al seleccionar la película:', error);
+            }
         }
 
         function playMovie(slug) {
