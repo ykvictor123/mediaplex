@@ -50,21 +50,23 @@
         <div id="mediaGrid" class="media-grid"></div>
     </div>
 
-    <!-- Modal para Seleccionar Coincidencia -->
-    <div class="modal fade" id="selectionModal" tabindex="-1" aria-hidden="true">
+    <!-- Modal para Reproducir Película -->
+    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Seleccionar Película</h5>
+                    <h5 class="modal-title">Reproduciendo Película</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="selectionBody"></div>
+                <div class="modal-body">
+                    <iframe id="playerFrame" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const MOVIES_URL = './movies.json'; // Ruta al archivo JSON con el listado de películas
+        const MOVIES_URL = './movies.json'; // Ruta al archivo JSON con las películas
         const TMDB_API_KEY = '708a2826cbb3c7dbd79b10c569049f54';
         const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
         const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
@@ -73,27 +75,23 @@
             try {
                 const response = await fetch(MOVIES_URL);
                 const { items } = await response.json();
+
                 for (const movie of items) {
-                    await fetchMetadata(movie.name, movie);
+                    await fetchMetadata(movie.name, movie.slug);
                 }
             } catch (error) {
                 console.error('Error al cargar las películas:', error);
             }
         }
 
-        async function fetchMetadata(query, movie) {
+        async function fetchMetadata(query, slug) {
             try {
                 const response = await fetch(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
                 const data = await response.json();
 
                 if (data.results && data.results.length > 0) {
-                    if (data.results.length === 1) {
-                        // Si hay una coincidencia exacta
-                        renderMovie(data.results[0], movie);
-                    } else {
-                        // Si hay varias coincidencias, muestra un listado para seleccionar
-                        showSelectionModal(data.results, movie);
-                    }
+                    const metadata = data.results[0]; // Tomamos la primera coincidencia
+                    renderMovie(metadata, slug);
                 } else {
                     console.warn('No se encontraron coincidencias para:', query);
                 }
@@ -102,45 +100,24 @@
             }
         }
 
-        function renderMovie(metadata, movie) {
+        function renderMovie(metadata, slug) {
             const mediaGrid = document.getElementById('mediaGrid');
             const item = document.createElement('div');
             item.className = 'media-item';
             item.innerHTML = `
-                <img src="${metadata.poster_path ? TMDB_IMAGE_URL + metadata.poster_path : 'https://via.placeholder.com/150'}" alt="${movie.name}">
+                <img src="${metadata.poster_path ? TMDB_IMAGE_URL + metadata.poster_path : 'https://via.placeholder.com/150'}" alt="${metadata.title}">
                 <h5 class="text-center mt-2">${metadata.title}</h5>
             `;
-            item.addEventListener('click', () => playMovie(movie.iframe));
+            item.addEventListener('click', () => playMovie(slug));
             mediaGrid.appendChild(item);
         }
 
-        function showSelectionModal(results, movie) {
-            const selectionBody = document.getElementById('selectionBody');
-            selectionBody.innerHTML = results.map(result => `
-                <div class="d-inline-block text-center">
-                    <img src="${result.poster_path ? TMDB_IMAGE_URL + result.poster_path : 'https://via.placeholder.com/150'}" alt="${result.title}" onclick="selectMovie(${result.id}, '${movie.name}')">
-                    <p>${result.title} (${result.release_date ? result.release_date.split('-')[0] : 'N/A'})</p>
-                </div>
-            `).join('');
-            const modal = new bootstrap.Modal(document.getElementById('selectionModal'));
-            modal.show();
-        }
+        function playMovie(slug) {
+            const iframeUrl = `https://short.ink/${slug}`;
+            const playerFrame = document.getElementById('playerFrame');
+            playerFrame.src = iframeUrl;
 
-        async function selectMovie(movieId, originalName) {
-            try {
-                const response = await fetch(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}`);
-                const metadata = await response.json();
-                renderMovie(metadata, { name: originalName, iframe: `https://short.ink/${originalName}` });
-                const modal = bootstrap.Modal.getInstance(document.getElementById('selectionModal'));
-                modal.hide();
-            } catch (error) {
-                console.error('Error al seleccionar la película:', error);
-            }
-        }
-
-        function playMovie(iframe) {
             const modal = new bootstrap.Modal(document.getElementById('playerModal'));
-            document.getElementById('playerFrame').src = iframe;
             modal.show();
         }
 
