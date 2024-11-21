@@ -75,19 +75,26 @@
         async function fetchAllMovies() {
             let currentPage = 1;
             let allMovies = [];
+            let hasNextPage = true;
 
-            while (true) {
+            while (hasNextPage) {
                 const response = await fetch(`${CORS_PROXY}${HYDRAX_API}?page=${currentPage}`);
+                if (!response.ok) {
+                    console.error(`Error al obtener la página ${currentPage}:`, response.statusText);
+                    break;
+                }
                 const data = await response.json();
 
                 if (data.items && data.items.length > 0) {
                     allMovies = allMovies.concat(data.items);
                     currentPage++;
+                    hasNextPage = data.pagination && data.pagination.next; // Verifica si hay otra página
                 } else {
-                    break; // Salir del bucle si no hay más datos
+                    hasNextPage = false; // Sal del bucle si no hay más datos
                 }
             }
 
+            console.log(`Se obtuvieron ${allMovies.length} películas.`);
             for (const movie of allMovies) {
                 await fetchMetadata(movie.name, movie.slug);
             }
