@@ -66,21 +66,30 @@
     </div>
 
     <script>
-        const MOVIES_URL = './movies.json'; // Ruta al archivo JSON con las películas
+        const HYDRAX_API = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
+        const CORS_PROXY = 'https://corsproxy.io/?'; // Proxy permanente para CORS
         const TMDB_API_KEY = '708a2826cbb3c7dbd79b10c569049f54';
         const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
         const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
-        async function fetchMovies() {
-            try {
-                const response = await fetch(MOVIES_URL);
-                const { items } = await response.json();
+        async function fetchAllMovies() {
+            let currentPage = 1;
+            let allMovies = [];
 
-                for (const movie of items) {
-                    await fetchMetadata(movie.name, movie.slug);
+            while (true) {
+                const response = await fetch(`${CORS_PROXY}${HYDRAX_API}?page=${currentPage}`);
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    allMovies = allMovies.concat(data.items);
+                    currentPage++;
+                } else {
+                    break; // Salir del bucle si no hay más datos
                 }
-            } catch (error) {
-                console.error('Error al cargar las películas:', error);
+            }
+
+            for (const movie of allMovies) {
+                await fetchMetadata(movie.name, movie.slug);
             }
         }
 
@@ -90,7 +99,7 @@
                 const data = await response.json();
 
                 if (data.results && data.results.length > 0) {
-                    const metadata = data.results[0]; // Tomamos la primera coincidencia
+                    const metadata = data.results[0]; // Usar la primera coincidencia
                     renderMovie(metadata, slug);
                 } else {
                     console.warn('No se encontraron coincidencias para:', query);
@@ -121,7 +130,7 @@
             modal.show();
         }
 
-        document.addEventListener('DOMContentLoaded', fetchMovies);
+        document.addEventListener('DOMContentLoaded', fetchAllMovies);
     </script>
 </body>
 </html>
