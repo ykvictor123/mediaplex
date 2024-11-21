@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaPlex</title>
+    <title>MediaPlex Latino</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
@@ -35,152 +35,94 @@
         .media-item:hover {
             transform: scale(1.05);
         }
-        .modal-content img {
-            width: 100px;
-            height: 150px;
-            object-fit: cover;
-            margin: 5px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
     <div class="container py-4">
-        <h1 class="text-center mb-4">MediaPlex</h1>
+        <h1 class="text-center mb-4">MediaPlex Latino</h1>
         <div id="mediaGrid" class="media-grid"></div>
     </div>
 
-    <!-- Modal para Seleccionar Coincidencia -->
-    <div class="modal fade" id="selectionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Seleccionar Película</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="selectionBody"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Reproducir Película -->
-    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Reproduciendo Película</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="playerFrame" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        const HYDRAX_API = 'https://api.hydrax.net/e7646a082cbb83e67d59d25ea3b0f592/list';
-        const CORS_PROXY = 'https://corsproxy.io/?'; // Proxy permanente para CORS
         const TMDB_API_KEY = '708a2826cbb3c7dbd79b10c569049f54';
         const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
         const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
-        async function fetchAllMovies() {
-            let currentPage = 1;
-            let allMovies = [];
-            let hasNextPage = true;
+        const OMDB_API_KEY = 'your-omdb-api-key'; // Reemplaza con tu clave de OMDb
+        const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 
-            while (hasNextPage) {
-                const response = await fetch(`${CORS_PROXY}${HYDRAX_API}?page=${currentPage}`);
-                if (!response.ok) {
-                    console.error(`Error al obtener la página ${currentPage}:`, response.statusText);
-                    break;
-                }
-                const data = await response.json();
+        const VID_SRC_API = 'https://vidsrc.dev/api/movies';
 
-                if (data.items && data.items.length > 0) {
-                    allMovies = allMovies.concat(data.items);
-                    currentPage++;
-                    hasNextPage = data.pagination && data.pagination.next; // Verifica si hay otra página
-                } else {
-                    hasNextPage = false; // Sal del bucle si no hay más datos
-                }
-            }
+        const CORS_PROXY = 'https://corsproxy.io/?'; // Proxy para evitar problemas de CORS
 
-            console.log(`Se obtuvieron ${allMovies.length} películas.`);
-            for (const movie of allMovies) {
-                await fetchMetadata(movie.name, movie.slug);
-            }
-        }
-
-        async function fetchMetadata(query, slug) {
+        async function fetchMoviesFromTMDB(query) {
             try {
-                const response = await fetch(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+                const response = await fetch(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&language=es-419&query=${encodeURIComponent(query)}`);
                 const data = await response.json();
-
-                if (data.results && data.results.length > 0) {
-                    if (data.results.length === 1) {
-                        // Si hay una coincidencia exacta
-                        renderMovie(data.results[0], slug);
-                    } else {
-                        // Si hay varias coincidencias, muestra un listado para seleccionar
-                        showSelectionModal(data.results, slug);
-                    }
-                } else {
-                    // Si no hay coincidencias, muestra con imagen genérica
-                    renderMovie({ title: query, poster_path: null }, slug);
-                }
+                return data.results || [];
             } catch (error) {
-                console.error('Error al buscar metadatos:', error);
+                console.error('Error al buscar en TMDB:', error);
+                return [];
             }
         }
 
-        function renderMovie(metadata, slug) {
+        async function fetchOMDbMetadata(imdbId) {
+            try {
+                const response = await fetch(`${OMDB_BASE_URL}?apikey=${OMDB_API_KEY}&i=${imdbId}`);
+                return await response.json();
+            } catch (error) {
+                console.error('Error al obtener datos de OMDb:', error);
+                return null;
+            }
+        }
+
+        async function fetchVidSrcLink(imdbId) {
+            try {
+                const response = await fetch(`${CORS_PROXY}${VID_SRC_API}?imdb_id=${imdbId}`);
+                const data = await response.json();
+                return data.data || null;
+            } catch (error) {
+                console.error('Error al obtener enlaces de VidSrc:', error);
+                return null;
+            }
+        }
+
+        function renderMovie(metadata) {
             const mediaGrid = document.getElementById('mediaGrid');
             const item = document.createElement('div');
             item.className = 'media-item';
             item.innerHTML = `
                 <img src="${metadata.poster_path ? TMDB_IMAGE_URL + metadata.poster_path : 'https://via.placeholder.com/150'}" alt="${metadata.title}">
-                <h5 class="text-center mt-2">${metadata.title}</h5>
+                <h5 class="text-center mt-2">${metadata.title} (${metadata.release_date ? metadata.release_date.split('-')[0] : 'N/A'})</h5>
             `;
-            item.addEventListener('click', () => playMovie(slug));
+            item.addEventListener('click', () => playMovie(metadata));
             mediaGrid.appendChild(item);
         }
 
-        function showSelectionModal(results, slug) {
-            const selectionBody = document.getElementById('selectionBody');
-            selectionBody.innerHTML = results.map(result => `
-                <div class="d-inline-block text-center">
-                    <img src="${result.poster_path ? TMDB_IMAGE_URL + result.poster_path : 'https://via.placeholder.com/150'}" alt="${result.title}" onclick="selectMovie(${result.id}, '${slug}')">
-                    <p>${result.title} (${result.release_date ? result.release_date.split('-')[0] : 'N/A'})</p>
-                </div>
-            `).join('');
-            const modal = new bootstrap.Modal(document.getElementById('selectionModal'));
-            modal.show();
-        }
+        async function playMovie(metadata) {
+            const imdbId = metadata.imdb_id || '';
+            const vidSrcLink = await fetchVidSrcLink(imdbId);
 
-        async function selectMovie(movieId, slug) {
-            try {
-                const response = await fetch(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}`);
-                const metadata = await response.json();
-                renderMovie(metadata, slug);
-                const modal = bootstrap.Modal.getInstance(document.getElementById('selectionModal'));
-                modal.hide();
-            } catch (error) {
-                console.error('Error al seleccionar la película:', error);
+            if (vidSrcLink && vidSrcLink.sources.length > 0) {
+                const videoUrl = vidSrcLink.sources[0].url;
+                window.open(videoUrl, '_blank'); // Abrir el enlace en una nueva pestaña
+            } else {
+                alert('No se encontraron enlaces de reproducción.');
             }
         }
 
-        function playMovie(slug) {
-            const iframeUrl = `https://short.ink/${slug}`;
-            const playerFrame = document.getElementById('playerFrame');
-            playerFrame.src = iframeUrl;
+        async function loadMovies() {
+            const query = prompt("Ingresa el nombre de la película o serie:");
+            const results = await fetchMoviesFromTMDB(query);
 
-            const modal = new bootstrap.Modal(document.getElementById('playerModal'));
-            modal.show();
+            if (results.length > 0) {
+                results.forEach(renderMovie);
+            } else {
+                alert('No se encontraron resultados.');
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchAllMovies);
+        document.addEventListener('DOMContentLoaded', loadMovies);
     </script>
 </body>
 </html>
