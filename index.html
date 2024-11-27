@@ -1097,28 +1097,69 @@
   <script>
     function closeModal() {
       const modal = document.getElementById('playerModal');
-      const player = document.getElementById('player');
       const mediaInfo = document.getElementById('mediaInfo');
-      
-      // Clear the video and media info
-      if (mediaInfo) {
-        mediaInfo.innerHTML = '';
-      }
-      
-      // Reset iframe src to stop video playback
+      const player = document.getElementById('player');
+      const subtitlesOverlay = document.getElementById('subtitlesOverlay');
+      const videoContainer = document.querySelector('.video-container');
+
+      // Stop video playback if exists
       if (player) {
         player.src = '';
       }
-      
-      // Hide the modal
+
+      // Clear subtitles if exists
+      if (subtitlesOverlay) {
+        subtitlesOverlay.innerHTML = '';
+      }
+
+      // Clear video container if exists
+      if (videoContainer) {
+        videoContainer.innerHTML = `
+          <iframe id="player" frameborder="0" allowfullscreen></iframe>
+          <div class="player-controls">
+            <button onclick="closeVideo()" class="close-video">Close Video</button>
+          </div>
+        `;
+      }
+
+      // Clear media info
+      if (mediaInfo) {
+        mediaInfo.innerHTML = '';
+      }
+
+      // Hide modal
       if (modal) {
         modal.style.display = 'none';
       }
-      
-      // Clear current media state
+
+      // Reset current media state
       currentMediaId = null;
       currentServer = 'latino';
+      
+      // Remove any error messages or loading states
+      const errorMessages = document.querySelectorAll('.error');
+      const loadingMessages = document.querySelectorAll('.loading');
+      errorMessages.forEach(el => el.remove());
+      loadingMessages.forEach(el => el.remove());
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // ... existing code ...
+
+      // Add event listener for close button
+      const closeBtn = document.querySelector('.close');
+      if (closeBtn) {
+        closeBtn.onclick = closeModal;
+      }
+
+      // Add event listener to close modal when clicking outside
+      const modal = document.getElementById('playerModal');
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          closeModal();
+        }
+      };
+    });
 
     function closeVideo() {
       const videoContainer = document.querySelector('.video-container');
@@ -1138,7 +1179,7 @@
     }
 
     function constructVideoUrl(server, id, type) {
-      // Get TV show season and episode if available
+      // Get TV show season and episode if available 
       let season = 1;
       let episode = 1;
       const seasonSelect = document.getElementById('seasonSelect');
@@ -1152,7 +1193,7 @@
       // Construct URL based on server
       switch (server) {
         case 'latino':
-          // Use new PlayHubLite URLs
+          // Use PlayHubLite URLs
           return type === 'movie' 
             ? `https://playhublite.com/movies/${id}`
             : `https://playhublite.com/series/${id}-${season}-${episode}`;
@@ -1164,18 +1205,13 @@
             
         case 'moviesapi':
           return type === 'movie'
-            ? `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1`
-            : `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${season}&e=${episode}`;
+            ? `https://moviesapi.club/movie/${id}` 
+            : `https://moviesapi.club/tv/${id}-${season}-${episode}`;
             
         case 'vidsrc':
           return type === 'movie'
             ? `https://vidsrc.me/embed/movie?tmdb=${id}`
             : `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
-            
-        case 'moviesapiclub':  
-          return type === 'movie'
-            ? `https://moviesapi.club/movie/${id}`
-            : `https://moviesapi.club/tv/${id}/${season}/${episode}`;
             
         case 'vidsrcxyz':
           return type === 'movie'
@@ -1642,16 +1678,13 @@
               Server 1 (VidSrc.to)
             </button>
             <button onclick="playMedia('moviesapi', '${id}', '${type}')" class="play-button">
-              Server 2 (MultiEmbed)
+              Server 2 (MoviesAPI)
             </button>
             <button onclick="playMedia('vidsrc', '${id}', '${type}')" class="play-button">
               Server 3 (VidSrc.me)
             </button>
-            <button onclick="playMedia('moviesapiclub', '${id}', '${type}')" class="play-button">
-              Server 4 (MoviesAPI.club)
-            </button>
             <button onclick="playMedia('vidsrcxyz', '${id}', '${type}')" class="play-button">
-              Server 5 (VidSrc.xyz)
+              Server 4 (VidSrc.xyz)
             </button>
             <button onclick="playTrailer('${id}', '${type}')" class="trailer-button">
               Ver Trailer
@@ -1982,89 +2015,105 @@
       // Update categories section
       updateCategoriesSection();
       displayCategories('movie'); // Start with movie categories
-    });
 
-    const closeButton = document.querySelector('.close');
-    if (closeButton) {
-      closeButton.addEventListener('click', closeModal);
-    }
-
-    const modal = document.getElementById('playerModal');
-    if (modal) {
-      window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal();
-        }
+      // Add click handlers for Movies and TV Shows buttons
+      document.getElementById('moviesButton')?.addEventListener('click', function() {
+        // Show only movies section
+        document.querySelector('.movies-section').style.display = 'block';
+        document.querySelector('.tv-section').style.display = 'none';
+        
+        // Update active state
+        this.classList.add('active');
+        document.getElementById('tvShowsButton').classList.remove('active');
       });
-    }
 
-    // Add load more event listeners
-    document.getElementById('loadMoreMovies')?.addEventListener('click', () => loadMoreContent('movie'));
-    document.getElementById('loadMoreTv')?.addEventListener('click', () => loadMoreContent('tv'));
-    
-    // Modify the navigation buttons to update currentEndpoints
-    const buttons = {
-      'popularButton': { movie: '/movie/popular', tv: '/tv/popular' },
-      'nowPlayingButton': { movie: '/movie/now_playing', tv: '/tv/on_the_air' },
-      'topRatedButton': { movie: '/movie/top_rated', tv: '/tv/top_rated' }
-    };
-    
-    Object.entries(buttons).forEach(([buttonId, endpoints]) => {
-      document.getElementById(buttonId)?.addEventListener('click', () => {
-        currentMovieEndpoint = endpoints.movie;
-        currentTvEndpoint = endpoints.tv;
-        currentMoviePage = 1;
-        currentTvPage = 1;
+      document.getElementById('tvShowsButton')?.addEventListener('click', function() {
+        // Show only TV section
+        document.querySelector('.movies-section').style.display = 'none';
+        document.querySelector('.tv-section').style.display = 'block';
+        
+        // Update active state
+        this.classList.add('active');
+        document.getElementById('moviesButton').classList.remove('active');
       });
-    });
 
-    // Add search functionality
-    document.getElementById('searchButton')?.addEventListener('click', async function() {
-      const searchQuery = document.getElementById('searchInput').value.trim();
-      if (!searchQuery) return;
-
-      try {
-        const moviesGrid = document.querySelector('.movies-grid');
-        const tvGrid = document.querySelector('.tv-grid');
-
-        moviesGrid.innerHTML = '<div class="loading">Searching movies...</div>';
-        tvGrid.innerHTML = '<div class="loading">Searching TV shows...</div>';
-
-        const [movies, tvShows] = await Promise.all([
-          fetchMedia('/search/movie', { query: searchQuery }),
-          fetchMedia('/search/tv', { query: searchQuery })
-        ]);
-
-        displayedMediaIds.clear();
-        moviesGrid.innerHTML = '';
-        tvGrid.innerHTML = '';
-
-        if (movies.length === 0) {
-          moviesGrid.innerHTML = '<div class="error">No movies found</div>';
-        } else {
-          movies.forEach(movie => displayMediaItem(movie, moviesGrid, 'movie'));
+      // Popular, Now Playing, Top Rated buttons
+      const navButtons = {
+        'popularButton': { 
+          endpoints: { movie: '/movie/popular', tv: '/tv/popular' },
+          title: 'Popular'
+        },
+        'nowPlayingButton': { 
+          endpoints: { movie: '/movie/now_playing', tv: '/tv/on_the_air' },
+          title: 'Now Playing/On Air'
+        },
+        'topRatedButton': { 
+          endpoints: { movie: '/movie/top_rated', tv: '/tv/top_rated' },
+          title: 'Top Rated'
         }
+      };
 
-        if (tvShows.length === 0) {
-          tvGrid.innerHTML = '<div class="error">No TV shows found</div>';
-        } else {
-          tvShows.forEach(show => displayMediaItem(show, tvGrid, 'tv'));
-        }
+      // Add click handlers for category buttons
+      Object.entries(navButtons).forEach(([buttonId, config]) => {
+        document.getElementById(buttonId)?.addEventListener('click', async function() {
+          // Update active states
+          document.querySelectorAll('.nav-buttons button').forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Reset pages
+          currentMoviePage = 1;
+          currentTvPage = 1;
+          
+          // Update current endpoints
+          currentMovieEndpoint = config.endpoints.movie;
+          currentTvEndpoint = config.endpoints.tv;
 
-      } catch (error) {
-        console.error('Search error:', error);
-        document.querySelector('.movies-grid').innerHTML = 
-          '<div class="error">Error searching movies. Please try again.</div>';
-        document.querySelector('.tv-grid').innerHTML = 
-          '<div class="error">Error searching TV shows. Please try again.</div>';
-      }
-    });
+          // Clear displayed IDs for fresh content
+          displayedMediaIds.clear();
 
-    // Add Enter key support for search
-    document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        document.getElementById('searchButton').click();
-      }
+          try {
+            // Show loading state
+            const moviesGrid = document.querySelector('.movies-grid');
+            const tvGrid = document.querySelector('.tv-grid');
+            moviesGrid.innerHTML = '<div class="loading">Loading movies...</div>';
+            tvGrid.innerHTML = '<div class="loading">Loading TV shows...</div>';
+
+            // Fetch new content
+            const [movies, tvShows] = await Promise.all([
+              fetchMedia(config.endpoints.movie, { page: 1 }),
+              fetchMedia(config.endpoints.tv, { page: 1 })
+            ]);
+
+            // Display new content
+            moviesGrid.innerHTML = '';
+            tvGrid.innerHTML = '';
+            
+            movies.forEach(movie => displayMediaItem(movie, moviesGrid, 'movie'));
+            tvShows.forEach(show => displayMediaItem(show, tvGrid, 'tv'));
+
+            // Reset load more buttons
+            document.getElementById('loadMoreMovies').disabled = false;
+            document.getElementById('loadMoreTv').disabled = false;
+            
+          } catch (error) {
+            console.error(`Error loading ${config.title} content:`, error);
+            document.querySelector('.movies-grid').innerHTML = 
+              '<div class="error">Error loading movies. Please try again.</div>';
+            document.querySelector('.tv-grid').innerHTML = 
+              '<div class="error">Error loading TV shows. Please try again.</div>';
+          }
+        });
+      });
+
+      // Language toggle functionality
+      document.getElementById('languageToggle')?.addEventListener('click', function() {
+        // Toggle between Spanish and English
+        currentLanguage = currentLanguage === 'es-419' ? 'en-US' : 'es-419';
+        this.textContent = currentLanguage === 'es-419' ? 'ES' : 'EN';
+        
+        // Reload content with new language
+        loadInitialContent();
+      });
     });
   </script>
   <footer>
